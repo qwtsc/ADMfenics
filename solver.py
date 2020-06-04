@@ -36,12 +36,12 @@ class Solver():
         t = 0
         ulastl = []
         for n in range(int(self.totalTime / self.time_step)):
-            if n%100==0 : print(f"have calculated {n} times")
             t += self.time_step
             u.t = t
             if t > 2:  # start to change the velocity, t is dimensionless residence time.
                 w_0.params = t - 2
                 w.interpolate(w_0)
+            solve(left == right, u, bcp)
             ulastl.append(u.vector().get_local()[0])
             # Update previous solution
             u_n.assign(u)
@@ -70,7 +70,7 @@ class Solver():
                 if nonlinearerror < PICARD_ERROR:
                     # print(f"ok!, after {count} the error is {nonlinearerror}")
                     break
-            # picard finish!
+            # picard finish!ls
             ulastl.append(u.vector().get_local()[0])
             # Update previous solution
             u_n.assign(u)
@@ -78,7 +78,7 @@ class Solver():
 
     def _define_firstOrderReaction(self):
         V, bcp, u_0, u_n, w, w_0, v, u, eps, da = self._prepare_define()
-        F = (u - u_n) / self.time_step * v * dx + eps * dot(w, w) * dot(grad(u), grad(v)) * dx + dot(w, grad(
+        F = (u - u_n) / self.time_step * v * dx + eps * norm(w) * norm(w) * dot(grad(u), grad(v)) * dx + dot(w, grad(
             u)) * v * dx + da * u * v * dx
         left, right = self._split_function(F)
         return right, V, left, bcp, u_n, w, w_0
@@ -86,7 +86,7 @@ class Solver():
     def _define_secondOrderReaction(self):
         V, bcp, u_0, u_n, w, w_0, v, u, eps, da = self._prepare_define()
         du = interpolate(u_0, V)
-        F = (u - u_n) / self.time_step * v * dx + eps * dot(w, w) * dot(grad(u), grad(v)) * dx + dot(w, grad(
+        F = (u - u_n) / self.time_step * v * dx + eps * norm(w) * norm(w) * dot(grad(u), grad(v)) * dx + dot(w, grad(
             u)) * v * dx + da * du * u * v * dx
         left, right = self._split_function(F)
         return right, V, left, bcp, du, u_n, w, w_0
@@ -137,7 +137,7 @@ class Solver():
             return(1,)
 
     def _save_res(self, ulastl):
-        with open(RES_ROOT_DIR + f"alpha_{self.alpha}_order_{self.order}_Bo_{self.bo}_DaI_{self.da}.csv", "w") as f:
+        with open(RES_ROOT_DIR + f"dt_{self.time_step}_alpha_{self.alpha}_order_{self.order}_Bo_{self.bo}_DaI_{self.da}.csv", "w") as f:
             for t, u in enumerate(ulastl):
                 tao = self.getRealTao(t * self.time_step)
                 if tao<1: continue
@@ -145,5 +145,5 @@ class Solver():
             f.flush()
 
 if __name__ == '__main__':
-    sec = Solver(2, 1e-4, 1e-3, 1, 0.1, 1000)
+    sec = Solver(1, 1e-1, 1e-1, 1, 0.1, 100)
     sec.solve()

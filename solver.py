@@ -9,7 +9,7 @@ PICARD_MAX_COUNT = 100
 RES_ROOT_DIR = "/home/fenics/ADMresults/"
 
 class Solver():
-    def __init__(self, order, dt, dz, alpha, da, bo, totalTime=50):
+    def __init__(self, order, dt, dz, alpha, da, bo, totalTime=50, note="exp", steady=False):
         self.order = order
         if (dt/dz>1):
             raise CFLError("dt should be less than dz since the max velocity is 1")
@@ -19,6 +19,8 @@ class Solver():
         self.da = da
         self.bo = bo
         self.totalTime = totalTime
+        self.prefix = note
+        self.steady= steady
 
     def solve(self):
         set_log_active(False)
@@ -38,14 +40,17 @@ class Solver():
         for n in range(int(self.totalTime / self.time_step)):
             t += self.time_step
             u.t = t
-            if t > 2:  # start to change the velocity, t is dimensionless residence time.
+            if (not self.steady) and t > 2:  # start to change the velocity, t is dimensionless residence time.
                 w_0.params = t - 2
                 w.interpolate(w_0)
             solve(left == right, u, bcp)
             ulastl.append(u.vector().get_local()[0])
             # Update previous solution
             u_n.assign(u)
-        self._save_res(ulastl)
+        if self.steady:
+            self._save_steady(u.vector().get_local())
+        else:
+            self._save_res(ulastl)
 
     def _solve_secondOrder(self):
         # Create mesh and define function space
@@ -58,7 +63,7 @@ class Solver():
             t += self.time_step
             u.t = t
             count = 0
-            if t > 2: # start to change the velocity, t is dimensionless residence time.
+            if (not self.steady) and t > 2: # start to change the velocity, t is dimensionless residence time.
                 w_0.params = t - 2
                 w.interpolate(w_0)
             # picard iteration!
@@ -74,11 +79,14 @@ class Solver():
             ulastl.append(u.vector().get_local()[0])
             # Update previous solution
             u_n.assign(u)
-        self._save_res(ulastl)
+        if self.steady:
+            self._save_steady(u.vector().get_local())
+        else:
+            self._save_res(ulastl)
 
     def _define_firstOrderReaction(self):
         V, bcp, u_0, u_n, w, w_0, v, u, eps, da = self._prepare_define()
-        F = (u - u_n) / self.time_step * v * dx + eps * norm(w) * norm(w) * dot(grad(u), grad(v)) * dx + dot(w, grad(
+        F = (u - u_n) / self.time_step * v * dx + eps * w[0] * w[0] *dot(grad(u), grad(v)) * dx + dot(w, grad(
             u)) * v * dx + da * u * v * dx
         left, right = self._split_function(F)
         return right, V, left, bcp, u_n, w, w_0
@@ -86,7 +94,7 @@ class Solver():
     def _define_secondOrderReaction(self):
         V, bcp, u_0, u_n, w, w_0, v, u, eps, da = self._prepare_define()
         du = interpolate(u_0, V)
-        F = (u - u_n) / self.time_step * v * dx + eps * norm(w) * norm(w) * dot(grad(u), grad(v)) * dx + dot(w, grad(
+        F = (u - u_n) / self.time_step * v * dx + eps * w[0] * w[0] * dot(grad(u), grad(v)) * dx + dot(w, grad(
             u)) * v * dx + da * du * u * v * dx
         left, right = self._split_function(F)
         return right, V, left, bcp, du, u_n, w, w_0
@@ -137,13 +145,31 @@ class Solver():
             return(1,)
 
     def _save_res(self, ulastl):
-        with open(RES_ROOT_DIR + f"dt_{self.time_step}_alpha_{self.alpha}_order_{self.order}_Bo_{self.bo}_DaI_{self.da}.csv", "w") as f:
+        with open(RES_ROOT_DIR + f"{self.prefix}_dt_{self.time_step}_alpha_{self.alpha}_order_{self.order}_Bo_{self.bo}_DaI_{self.da}.csv", "w") as f:
             for t, u in enumerate(ulastl):
                 tao = self.getRealTao(t * self.time_step)
                 if tao<1: continue
                 f.write(f"{tao}, {u}"+"\n")
             f.flush()
 
+    def _save_steady(self, lastrun):
+        with open(RES_ROOT_DIR + f"{self.prefix}_dt_{self.time_step}_alpha_{self.alpha}_order_{self.order}_Bo_{self.bo}_DaI_{self.da}.csv", "w") as f:
+            for z, u in enumerate(lastrun[::-1]):
+                f.write(f"{z*self.length_interval}, {u}"+"\n")
+            f.flush()
+
+    def get_savefile_path(self):
+        return RES_ROOT_DIR + f"{self.prefix}_dt_{self.time_step}_alpha_{self.alpha}_order_{self.order}_Bo_{self.bo}_DaI_{self.da}.csv"
+
 if __name__ == '__main__':
-    sec = Solver(1, 1e-1, 1e-1, 1, 0.1, 100)
+    from expdata import Result
+    from displayer import Displayer
+    sec = Solver(order=2, dt=1e-2, dz=1e-1, alpha=1, da=0.05, bo=10, totalTime=40, note="testnorm")
     sec.solve()
+    result = Result(sec.get_savefile_path())
+    # result2 = Result(RES_ROOT_DIR + "dt_0.0001_alpha_1_order_1_Bo_100_DaI_0.1.csv")
+    show = Displayer(0, 30, 0, 1)
+    show.plotmany([result])
+    show.save("testnorm.png")
+    show.show()
+

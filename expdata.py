@@ -34,15 +34,14 @@ class Result():
             raise NotImplementedError
 
 if __name__ == '__main__':
-
-    resname = [
-               "dt_0.1_alpha_1_order_1_Bo_100_DaI_0.1",
+    resname = ["dt_0.0001_alpha_1_order_1_Bo_50_DaI_0.1",
+               "dt_0.0001_alpha_1_order_1_Bo_100_DaI_0.1",
+               "dt_0.0001_alpha_1_order_1_Bo_500_DaI_0.1",
+               "dt_0.0001_alpha_1_order_1_Bo_1000_DaI_0.1"
                ]
-
-    show = Displayer()
-    for name in resname:
-        res = Result(RES_ROOT_DIR+name+".csv")
-        show.plot(res)
-        show.save(name)
+    results = [Result(RES_ROOT_DIR+name+".csv") for name in resname]
+    show = Displayer(0, 15, 0, 0.8)
+    show.plotmany(results)
+    show.save("compare_bo_1.png")
     show.show()
 

@@ -21,10 +21,15 @@ class Displayer():
         self._setlegend()
 
     def plotmany(self, manydata):
+        if len(manydata) > 6:
+            raise NotImplementedError
         self._layout()
+        color = ['g', 'b', 'r', 'k', 'y', 'o']
+        start = 0
         for data in manydata:
-            self.ax.plot(data.tao, 1 - data.psi, 'b', label=data.getLabel())
-            self.ax.plot(data.tao, 1 - data.truepsi, 'k', label=data.getLabel())
+            self.ax.plot(data.tao, 1 - data.psi, color[start], label=data.getLabel())
+            self.ax.plot(data.tao, 1 - data.truepsi, color[start]+"-", label=data.getLabel())
+            start += 1
         self._setlegend()
 
     def _setLabel(self):

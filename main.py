@@ -2,10 +2,10 @@ from expdata import Result
 from displayer import Displayer
 from solver import Solver
 
-sec = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.035, bo=0.212, totalTime=200, note="exp")
-sec1 = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.015, bo=0.212, totalTime=200, note="exp")
-sec2 = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.008, bo=0.212, totalTime=200, note="exp")
-sec3 = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.002, bo=0.212, totalTime=200, note="exp")
+sec = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.035, bo=2.25, totalTime=200, note="exp")
+sec1 = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.015, bo=2.25, totalTime=200, note="exp")
+sec2 = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.008, bo=2.25, totalTime=200, note="exp")
+sec3 = Solver(order=1, dt=1e-3, dz=1e-2, alpha=0.34, da=0.002, bo=2.25, totalTime=200, note="exp")
 sec.solve()
 sec1.solve()
 sec2.solve()

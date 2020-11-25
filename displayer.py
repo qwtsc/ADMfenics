@@ -24,11 +24,11 @@ class Displayer():
         if len(manydata) > 6:
             raise NotImplementedError
         self._layout()
-        color = ['g', 'b', 'r', 'k', 'y', 'o']
+        color = ['g', 'b', 'r', 'k', 'y']
         start = 0
         for data in manydata:
             self.ax.plot(data.tao, 1 - data.psi, color[start], label=data.getLabel())
-            self.ax.plot(data.tao, 1 - data.truepsi, color[start]+"-", label=data.getLabel())
+            self.ax.plot(data.tao, 1 - data.truepsi, "--"+color[start])
             start += 1
         self._setlegend()
 

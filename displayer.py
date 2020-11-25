@@ -47,7 +47,7 @@ class Displayer():
         self.ax.yaxis.set_ticklabels(ytickslabel)
 
     def _setlegend(self):
-        self.ax.legend(loc='lower right', ncol=2)
+        self.ax.legend(loc='upper left', ncol=2)
 
     def show(self):
         plt.show()

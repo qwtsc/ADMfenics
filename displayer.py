@@ -24,7 +24,7 @@ class Displayer():
         self._layout()
         for data in manydata:
             self.ax.plot(data.tao, 1 - data.psi, 'b', label=data.getLabel())
-        self.ax.plot(manydata[0].tao, 1 - manydata[0].truepsi, 'k', label="true")
+            self.ax.plot(data.tao, 1 - data.truepsi, 'k', label=data.getLabel())
         self._setlegend()
 
     def _setLabel(self):
@@ -47,7 +47,7 @@ class Displayer():
         self.ax.yaxis.set_ticklabels(ytickslabel)
 
     def _setlegend(self):
-        self.ax.legend()
+        self.ax.legend(loc='lower right', ncol=2)
 
     def show(self):
         plt.show()

@@ -20,7 +20,7 @@ class Result():
         return tao, psi
 
     def getLabel(self):
-        return f"Bo: {self.bo}"
+        return f"Da: {self.da}"
 
     def __str__(self) -> str:
         return f"alpha_{self.alpha}_order_{self.order}_Bo_{self.bo}_DaI_{self.da}"
